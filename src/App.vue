@@ -11,13 +11,16 @@ let local_cases = ref(["0", "1", "2", "3","4", "5","6","7","8"])
 let player1 = ref(true)
 let player1Turn = ref(true)
 
-let joinGame = ref(false)
 
-let showError = ref(false)
+let showError = ref("")
 
 let gameEndSentence = ref("")
 
 let gameFinished = ref(false)
+
+let numberOfPlayers = ref(0)
+
+let inGameMsg = ref('')
 
 let winningConditions = [
         [0, 1, 2],
@@ -53,18 +56,18 @@ async function valid(action){
       {
         plateau,
         player1Turn: true,
-        gameFinished: false
-        // full: false,
+        gameFinished: false,
+        numberOfPlayers: 1,
       })
 
     game_id.value = id._id
     player1.value = true
+    inGameMsg.value = "En attente d'un autre joueur"
 
   }
 
   if(game_id.value == "") {
-    console.log("test")
-    showError.value = true
+    showError.value = "Rajoutez un code de partie"
     return
 
   }
@@ -79,12 +82,27 @@ async function valid(action){
       }},
     )
 
-    if (result.total == 0){
-      showError.value = true
+    if (result.total == 0 ){
+      showError.value = "Code de partie incorrect"
+      return
+    }
+    else if (result._result.hits[0]._source.numberOfPlayers > 2){
+      showError.value = "La partie est pleine"
       return
     }
     else{
+      console.log(game_id.value)
+
       player1.value = false
+      await kuzzle.document.update(
+        "morpion",
+        "games",
+        game_id.value,
+        {
+          numberOfPlayers: result._result.hits[0]._source.numberOfPlayers + 1
+        }
+
+      )
     }
   }
   
@@ -108,9 +126,16 @@ async function SubscribeToGame(){
       local_cases.value = notification.result._source.plateau
       player1Turn.value = notification.result._source.player1Turn
       gameFinished.value = notification.result._source.gameFinished
+      console.log(notification.result._source.numberOfPlayers)
+      numberOfPlayers.value = notification.result._source.numberOfPlayers
       if(!checkEmpty()) {
         closeTheGame()
         gameEndSentence.value = "Match nul !"
+      }
+      console.log(numberOfPlayers.value)  
+
+      if(numberOfPlayers.value > 1 ) {
+        inGameMsg.value = player1Turn.value ? 'Au tour de O' : 'Au tour de X'
       }
       isWin()
 
@@ -121,8 +146,10 @@ async function SubscribeToGame(){
 
 
 async function clickOnCase(index){
-  if(!gameFinished.value){
+  console.log(numberOfPlayers.value)
 
+  if(!gameFinished.value && numberOfPlayers.value == 2){
+    console.log("click")
     if(player1.value == player1Turn.value){
       let newTab = local_cases.value
       let newPlayer1Value = !player1Turn.value
@@ -156,12 +183,9 @@ async function isWin(){
 }
 
 function checkEmpty(){
-  console.log(local_cases.value.length)
   let returnVal = false
   for(let i = 0; i < local_cases.value.length ; i ++){
-    console.log(local_cases.value)
     if(local_cases.value[i] != 'X' && local_cases.value[i] != 'O'){
-      console.log(local_cases.value[i])
       returnVal = true
     }
   }
@@ -188,6 +212,7 @@ async function closeTheGame(){
   <div v-if="kuzzle_connected">
     <div v-if="game_id">
       <h2>Game joined id : {{game_id}}</h2>
+      <h3 v-if="inGameMsg != ''">{{inGameMsg}}</h3>
       <h3 v-if="gameSentence != ''">{{gameEndSentence}}</h3>
       <div class="morpion_tab">
         <button class="case_btn"  v-for="(element, index) in local_cases" :key="index.value" @click="clickOnCase(index)">
@@ -200,7 +225,7 @@ async function closeTheGame(){
     <h1>Morpion Kuzzle</h1>
   <button @click="valid('create')">Créer une partie</button>
   <h2>Rejoindre une partie :</h2>
-  <h3 v-if="showError">Le code de partie n'est pas bon</h3>
+  <h3 v-if="showError != ''">{{showError}}</h3>
   <input type="text" v-model="game_id" placeholder="game id">
   <button @click="valid('join')">Rejoindre une partie</button>
   </div>
