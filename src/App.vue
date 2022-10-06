@@ -71,6 +71,8 @@ async function valid(action){
     return
 
   }
+
+  // Join une game 
   if(action == "join"){
     let result = await kuzzle.document.search(
       "morpion",
@@ -86,12 +88,11 @@ async function valid(action){
       showError.value = "Code de partie incorrect"
       return
     }
-    else if (result._result.hits[0]._source.numberOfPlayers > 2){
+    else if (result._result.hits[0]._source.numberOfPlayers > 1){
       showError.value = "La partie est pleine"
       return
     }
     else{
-      console.log(game_id.value)
 
       player1.value = false
       await kuzzle.document.update(
@@ -99,7 +100,7 @@ async function valid(action){
         "games",
         game_id.value,
         {
-          numberOfPlayers: result._result.hits[0]._source.numberOfPlayers + 1
+          numberOfPlayers: parseInt(result._result.hits[0]._source.numberOfPlayers) + 1
         }
 
       )
@@ -146,10 +147,8 @@ async function SubscribeToGame(){
 
 
 async function clickOnCase(index){
-  console.log(numberOfPlayers.value)
 
   if(!gameFinished.value && numberOfPlayers.value == 2){
-    console.log("click")
     if(player1.value == player1Turn.value){
       let newTab = local_cases.value
       let newPlayer1Value = !player1Turn.value
