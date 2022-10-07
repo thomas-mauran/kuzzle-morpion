@@ -7,6 +7,8 @@ import App from './vues/App.vue'
 import Morpion from './vues/Morpion.vue'
 import Login from './vues/Login.vue'
 import Signup from './vues/Signup.vue'
+import Logout from './vues/Logout.vue'
+
 
 
 async function checkAuth(){
@@ -29,13 +31,16 @@ async function checkAuth(){
     }
   }
 
+
 const routes = [
     {
-        path: '/', component: App
+        path: '/', component: Login, 
     },
-    {path: '/morpion', name: 'Morpion', component: Morpion, beforeEnter: await checkAuth},
-    {path: '/login', name: 'Login', component: Login},
-    {path: '/signup', name: 'Signup', component: Signup}
+    {path: '/morpion', name: 'Morpion', component: Morpion, beforeEnter: checkAuth, meta: {navbar: true}},
+    {path: '/login', name: 'Login', component: Login, meta: {navbar: false}},
+    {path: '/signup', name: 'Signup', component: Signup, meta: {navbar: false}},
+    {path: '/logout', name: 'Logout', component: Logout, meta: {navbar: false}}
+
 
 ]
 

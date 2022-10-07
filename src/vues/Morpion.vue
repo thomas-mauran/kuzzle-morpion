@@ -2,13 +2,10 @@
 <script setup>
 import kuzzle from "../services/kuzzle"
 import {ref} from "vue"
-import {useRouter} from 'vue-router'
 
 
-let router = useRouter()
 
-console.log(localStorage.getItem('jwt'))
-
+console.log(localStorage.getItem('isAuth'))
 let kuzzle_connected = ref(false)
 
 let game_id = ref("")
@@ -206,6 +203,15 @@ async function closeTheGame(){
       )
 } 
 
+function copyToClipboard(){
+   // Get the text field
+
+
+  // Copy the text inside the text field
+  navigator.clipboard.writeText(game_id.value);
+
+}
+
 
 </script>
 
@@ -213,7 +219,10 @@ async function closeTheGame(){
 
   <div v-if="kuzzle_connected">
     <div v-if="game_id">
-      <h2>Game joined id : {{game_id}}</h2>
+      <div class="horizontal-div">
+        <h2>Game joined id : {{game_id}}</h2>
+        <button class="copy-btn" @click="copyToClipboard">Copy to clipboard</button>
+      </div>
       <h3 v-if="inGameMsg != ''">{{inGameMsg}}</h3>
       <h3 v-if="gameSentence != ''">{{gameEndSentence}}</h3>
       <div class="morpion_tab">
@@ -239,5 +248,37 @@ async function closeTheGame(){
 </template>
 
 <style>
+
+.morpion_tab{
+  box-shadow: 3px 3px 3px 3px black;
+  width: 600px;
+  height: 600px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+}
+
+.case_btn{
+  border-radius: 0px;
+  border: 1px solid black !important;
+  font-size: 3em;
+  width: 200px;
+  height: 200px;
+}
+
+.horizontal-div{
+  display: flex;
+  flex-direction: row;
+}
+
+.copy-btn{
+  height: 30px;
+  cursor: pointer;
+  background-color: white;
+  padding: 0px 10px 0px 10px;
+  margin: 16px 20px 0px 20px;
+}
 
 </style>
