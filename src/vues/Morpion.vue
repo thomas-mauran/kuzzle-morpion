@@ -1,8 +1,13 @@
 
-<!-- <script setup>
+<script setup>
 import kuzzle from "../services/kuzzle"
 import {ref} from "vue"
+import {useRouter} from 'vue-router'
 
+
+let router = useRouter()
+
+console.log(localStorage.getItem('jwt'))
 
 let kuzzle_connected = ref(false)
 
@@ -33,10 +38,9 @@ let winningConditions = [
         [2, 4, 6]
     ];
 
-async function valid(action){
-  await kuzzle.connect()
-  const jwt = await kuzzle.auth.login('local', {username: "lambda", password: "1234"});
 
+async function valid(action){
+  
   if(! await kuzzle.index.exists("morpion")){
     await kuzzle.index.create("morpion")
     await kuzzle.collection.create("morpion", "games")
@@ -203,12 +207,9 @@ async function closeTheGame(){
 } 
 
 
-</script> -->
-<script setup>
-
 </script>
+
 <template>
-  <h1>Morpion</h1>
 
   <div v-if="kuzzle_connected">
     <div v-if="game_id">
